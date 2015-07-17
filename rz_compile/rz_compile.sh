@@ -9,7 +9,7 @@
 # NEWER VERSION IN icbc/lemonSqueezy
 #
 # OGS_FEM_MKL:
-#       Exchange FindMKL.cmake
+#      if error MKL not found, than exchange FindMKL.cmake
 #
 #
 # OGS_FEM_MPI:
