@@ -3,9 +3,9 @@
 
 chill: to kill jobs;
 
-qb: to generate huge finite element meshes in no time (regular 2D, 3D);
+rz_compile: to compile OpenGeoSys n RZ cluster Kiel (all configurations):
 
-rz_compile: to compile OpenGeoSys n RZ cluster Kiel (all configurations). <br>
+qb: to generate huge finite element meshes in no time (regular 2D, 3D). <br>
 
 
 ogs_kb1 simulation of a brine leakage szenario with a qb grid (4 million nodes; meshing requires roughly 1 min):
