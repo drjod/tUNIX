@@ -18,15 +18,15 @@
 # USER GUIDE: 
 #   a) Put in OGS folder (same level as sources and libs)  
 #	   cd into this folder and type ./compileInKiel.sh  
-#      as an option, call script from wherever you want and pass 
-#      this ogs folder as parameter $1
+#      as an option, call script from somewhere else 
+#      ogs folder as parameter $1
 # 
 #   b) To avoid SEEK_SET ERROR when using mpi compiler, add into CMakeLists.txt:    
 #      IF(OGS_FEM_MPI OR OGS_FEM_MPI_KRC OR OGS_FEM_PETSC OR OGS_FEM_PETSC_GEMS)   
 #         SET(CMAKE_CXX_FLAGS -DMPICH_IGNORE_CXX_SEEK)  
 #      ENDIF(OGS_FEM_MPI OR OGS_FEM_MPI_KRC OR OGS_FEM_PETSC OR OGS_FEM_PETSC_GEMS)  
 #  
-#   c) For OGS_FEM_MKL, SET COMPILER FLAG -mkl and do not use FindMKL.cmake, 
+#   c) For OGS_FEM_MKL, set compiler flag -mkl and do not use FindMKL.cmake, 
 #      e.g. by adapting CMakeConfiguration/Find.cmake to 
 #        IF(OGS_FEM_MKL)  
 #	       SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mkl")      
@@ -72,7 +72,7 @@ printMessage()
 # 1. Initialization
 #     first function called in main
 #	parameter:
-#		$1: path to ogs folder or empty
+#		$1: path to ogs folder 
  
 initialize()
 {
@@ -119,7 +119,7 @@ initialize()
 ############################################################################################# 
 #  2. SET PATHS 
 #
-#  INTEL		: rzcluster (1502, composer_xe_2015.2.164),
+#  INTEL        : rzcluster (1502, composer_xe_2015.2.164),
 #                 NEC cluster(15.0.3, composer_xe_2015.3.187)
 #                 Lockstedt (13.1.0, composer_xe_2013.2.146)
 #  INTEL mpi    : rzcluster (5.0.3.048), NEC cluster (4.1.1.036), Lockstedt
@@ -132,7 +132,6 @@ initialize()
 
 setPaths()
 {
-
 	setPaths__host=$HOSTNAME
 	
 	case ${setPaths__host:0:2} in 
@@ -210,7 +209,7 @@ setCompilerTable()
 			"ON"					"$ICC"					"$ICPC"					# OGS_FEM_MKL   
 			"OFF"					"$MPIICC"				"$MPIICPC"				# OGS_FEM_MPI  
 			"OFF"					"$MPIICC"				"$MPIICPC"				# OGS_FEM_MPI_KRC 
-			"OFF"					"$MPIICC"			    "$MPIICPC"		        # OGS_FEM_PETSC 					 
+			"OFF"					"$MPIICC"			        "$MPIICPC"		        # OGS_FEM_PETSC 					 
 	)    
 }  
     
@@ -255,10 +254,11 @@ selectConfiguration()  # code configuration from list cConfigurations
 selectBuild()  
 {  
 	selectBuild__cInput=""  # used as local variable
+	setPaths__host=$HOSTNAME
 	
 	# configuration
-	if [ HOSTNAME=="rzcl100b" ] || [ HOSTNAME=="Lokstedt" ]; then
-	
+	if [ "${setPaths__host:0:2}" == "rz" ] || [ "${setPaths__host:0:2}" == "Lo" ]; then
+		# Eclipse exists on RZ cluster and Lokstedt
 		echo -e "\n[d]ebug or [r]elease?" 
 		read -n1 selectBuild__cInput  
 		if [ "$selectBuild__cInput" == "d" ]; then  
@@ -327,7 +327,7 @@ build()
 #	 Result:
 # 		binaries (renamed)
 #	parameter:
-#		$1: path to ogs folder or empty
+#		$1: path to ogs folder
 #
 
 main()
