@@ -3,8 +3,8 @@
 #############################################################################################  
 #      	To generate ogs binaries with intel compiler (mpi, openmp, mkl) on:
 #			1. Lockstedt GPI server - Eclipse IDE
-#  			2. RZ CLUSTER (hostname rzcl00b) - Eclipse IDE, PETSC
-#			3. NEC cluster (hostnames nesh-f1 or nesh-f2) - PETSC	   	
+#  			2. RZ CLUSTER - Eclipse IDE, PETSC
+#			3. NEC cluster - PETSC	   	
 #
 #       ogs configurations: OGS_FEM, OGS_FEM_SP, OGS_FEM_MKL (sequential)
 #                           OGS_FEM_MPI, OGS_FEM_MPI_KRC, OGS_FEN_PETSC (parallel)
@@ -275,13 +275,13 @@ selectBuild()
 	fi	
 		
 	# flag
-    echo -e "\n--------------------------------------------------\n"
-    echo -e "\nCreate Build Files ([y]es or [n]o)?"  
-    read -n1 selectBuild__cInput  
-    if [ "$selectBuild__cInput" == "y" ]; then  
-        BUILD_flag=1  
-    elif [ "$selectBuild__cInput" == "n" ]; then  
-        BUILD_flag=0
+    	echo -e "\n--------------------------------------------------\n"
+    	echo -e "\nCreate Build Files ([y]es or [n]o)?"  
+    	read -n1 selectBuild__cInput  
+    	if [ "$selectBuild__cInput" == "y" ]; then  
+	   BUILD_flag=1  
+    	elif [ "$selectBuild__cInput" == "n" ]; then  
+	  BUILD_flag=0
 	else
 		printMessage "ERROR" "Take \"y\" or \"n\" - Restart"		
 		main
@@ -345,7 +345,7 @@ main()
 	ROOT_FOLDER=$OGS_FOLDER/"Build_${BUILD_CONFIGURATION}_$INTEL_VERSION"
 	mkdir -p $ROOT_FOLDER
 
-	# loop over all configurations (from list in 2.)
+	# loop over all configurations (from list in 1.)
 	for (( main__configurationNDX=0; main__configurationNDX<${#cConfigurations[@]}; main__configurationNDX++ ))  
 	do  
 		# either one or all can be selected
