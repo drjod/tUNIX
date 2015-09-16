@@ -254,10 +254,10 @@ selectConfiguration()  # code configuration from list cConfigurations
 selectBuild()  
 {  
 	selectBuild__cInput=""  # used as local variable
-	setPaths__host=$HOSTNAME
+	selectBuild__host=$HOSTNAME
 	
 	# configuration
-	if [ "${setPaths__host:0:2}" == "rz" ] || [ "${setPaths__host:0:2}" == "Lo" ]; then
+	if [ "${selectBuild__host:0:2}" == "rz" ] || [ "${selectBuild__host:0:2}" == "Lo" ]; then
 		# Eclipse exists on RZ cluster and Lokstedt
 		echo -e "\n[d]ebug or [r]elease?" 
 		read -n1 selectBuild__cInput  
@@ -367,11 +367,11 @@ main()
 			fi  
 			
 			# compile
-            printMessage "INFO" "Compiling"
+        		 printMessage "INFO" "Compiling"
 			make -j $nCPUs    
 			
 			# post-processing
-            if [ -e $BUILD_FOLDER/bin/ogs ]; then			
+        		 if [ -e $BUILD_FOLDER/bin/ogs ]; then			
 				mv $BUILD_FOLDER/bin/ogs $BUILD_FOLDER/bin/ogs_$cConfigurationSELECTED     # rename
 				printMessage "INFO" "Binaries ogs_$cConfigurationSELECTED generated"				
 			else
