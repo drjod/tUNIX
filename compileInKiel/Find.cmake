@@ -239,12 +239,14 @@ FIND_PATH (VRED_DIR_FOUND vrNodePtr.h ${VRED_DIR}/include/vred)
 ## OpenSG ##
 FIND_PACKAGE( OpenSG COMPONENTS OSGBase OSGSystem)
 
-IF(OGS_FEM_MKL)
-	# Find MKLlib
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mkl")     # CHANGED BY JOD
+# compiler flag added and FindMKL removed BY JOD
+# -mkl or -mkl=parallel for OpenMP threading
+IF(OGS_FEM_MKL)  
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mkl")     
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mkl")
-	#FIND_PACKAGE( MKL REQUIRED )
-	#INCLUDE_DIRECTORIES (${MKL_INCLUDE_DIR})
+    # Find MKLlib	
+	# FIND_PACKAGE( MKL REQUIRED )
+	# INCLUDE_DIRECTORIES (${MKL_INCLUDE_DIR})
 ENDIF()
 
 IF(OGS_FEM_LIS OR OGS_FEM_MKL)
