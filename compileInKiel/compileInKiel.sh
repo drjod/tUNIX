@@ -8,7 +8,7 @@
 #
 #       ogs configurations: OGS_FEM, OGS_FEM_SP, OGS_FEM_MKL (sequential)
 #                           OGS_FEM_MPI, OGS_FEM_MPI_KRC, OGS_FEN_PETSC (parallel)
-#							(more can be added in 2. below)
+#							(more can be added in 1./3. below)
 #																	by JOD 9/2015  
 #	parameter:
 #		$1: path to ogs folder or empty (script steps into build folder for cmake and make)
