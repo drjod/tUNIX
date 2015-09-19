@@ -16,6 +16,8 @@ ogs_kb1 simulation of a brine leakage szenario with a qb grid (4 million nodes; 
 
 git clone https://github.com/drjod/tUNIX.git
 
+git clone https://github.com/drjod/tUNIX.git --branch develop
+
 git status
 
 git add filename
