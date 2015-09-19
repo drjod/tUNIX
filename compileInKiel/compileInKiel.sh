@@ -74,7 +74,7 @@ printMessage()
 #	parameter:
 #		$1: path to ogs folder 
  
-initialize()
+declare()
 {
 	nCPUs=6 	 # number of CPUs for compilation (<= number of nodes on cluster login node or server)
 	CALLEDFROM=$PWD    	 
@@ -333,7 +333,7 @@ build()
 main()
 {
 	# config - variables and paths
-	initialize $1				
+	declare $1				
 	setPaths
 	setCompilerTable
 	
