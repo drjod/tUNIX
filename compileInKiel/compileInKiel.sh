@@ -224,7 +224,8 @@ setCompilerTable()
 #			configurationSELECTED 	
 #			BUILD_CONFIGURATION    	
 #			BUILD_flag				
-#
+#	parameter:
+#		$1: path to ogs folder
 
 selectConfiguration()  # code configuration from list cConfigurations
 {      
@@ -241,12 +242,12 @@ selectConfiguration()  # code configuration from list cConfigurations
 
 		if [ "$configurationSELECTED" -lt 0 ] ||	[ "$configurationSELECTED" -ge ${#cConfigurations[@]} ]; then
 			printMessage "ERROR" "Number out of range - Restart"				
-			main
+			main $1
 		fi
 	else
 		if [ $configurationSELECTED != "a" ]; then
 		  printMessage "ERROR" "Input neither a number nor \"a\" to select all - Restart"				
-		  main
+		  main $1
 		fi
 	fi
 }  
@@ -268,7 +269,7 @@ selectBuild()
 			BUILD_CONFIGURATION="Release"		
 		else
 			printMessage "ERROR" "Take \"d\" or \"r\" - Restart"				
-			main
+			main $1
 		fi 
 	else
 		BUILD_CONFIGURATION="Release"     
@@ -284,7 +285,7 @@ selectBuild()
 	  BUILD_flag=0
 	else
 		printMessage "ERROR" "Take \"y\" or \"n\" - Restart"		
-		main
+		main $1
     fi  
 }  
 
@@ -338,8 +339,8 @@ main()
 	setCompilerTable
 	
 	# user input
-	selectConfiguration    
-	selectBuild 
+	selectConfiguration $1   
+	selectBuild $1
 
 	# config main loop
 	ROOT_FOLDER=$OGS_FOLDER/"Build_${BUILD_CONFIGURATION}_$INTEL_VERSION"
