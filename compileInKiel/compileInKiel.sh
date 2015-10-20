@@ -4,14 +4,20 @@
 #      	To generate ogs binaries with intel compiler (mpi, openmp, mkl) on:
 #			1. Lockstedt GPI server - Eclipse IDE
 #  			2. RZ CLUSTER - Eclipse IDE, PETSC
-#			3. NEC cluster - PETSC	   	
-#
-#       ogs configurations: OGS_FEM, OGS_FEM_SP, OGS_FEM_MKL (sequential)
-#                           OGS_FEM_MPI, OGS_FEM_MPI_KRC, OGS_FEN_PETSC (parallel)
-#							(more can be added in 1./3. below)
-#																	by JOD 9/2015  
+#			3. NEC cluster - PETSC	   	 
+#																	by JOD 10/2015  
 #	parameter:
 #		$1: path to ogs folder or empty (script steps into build folder for cmake and make)
+#       $2: configurationSELECTED 
+#                   0: OGS_FEM
+#                   1: OGS_FEM_SP
+#                   2: OGS_FEM_MKL (sequential)
+#                   3: OGS_FEM_MPI
+#                   4: OGS_FEM_MPI_KRC
+#                   5: OGS_FEN_PETSC (parallel)
+#							(more can be added in 1./3. below)
+#       $3: BUILD_CONFIGURATION   [Debug, Release]   No Debug for NEC 
+#                                 if BUILD_CONFIGURATION preselected, then BUILD_flag=0  (no cmake)
 #
 #############################################################################################  
 #  
@@ -74,7 +80,7 @@ printMessage()
 #	parameter:
 #		$1: path to ogs folder 
  
-declareVariables()
+initialize()
 {
 	nCPUs=6 	 # number of CPUs for compilation (<= number of nodes on cluster login node or server)
 	CALLEDFROM=$PWD    	 
@@ -83,11 +89,7 @@ declareVariables()
 	else
 		OGS_FOLDER=$CALLEDFROM # call from ogs folder
 	fi
-
-	BUILD_CONFIGURATION=""	 # [Debug, Release]   No Debug for NEC
-	BUILD_flag=-1            # [0: do not cmake, 1: do cmake]
-	IDE="" 		             # [empty,ECLIPSE]
-
+	
 	cConfigurations=(  # extend compiler table (3.) if you add code configurations
 		"OGS_FEM"  
 		"OGS_FEM_SP"  
@@ -96,8 +98,28 @@ declareVariables()
 		"OGS_FEM_MPI_KRC" 
 		"OGS_FEM_PETSC" 
 	)
-	configurationSELECTED=-1  # [0,1,..., number of configurations -1]
+	if [ "$2" != "" ]; then	
+	    configurationSELECTED=$2
+	else
+	    configurationSELECTED="-1"  
+	fi
 	cConfigurationSELECTED="" # [OGS_FEM, OGS_FEM_SP, ...]  
+	
+	
+    if [ "$3" == "Debug" ]; then
+	    BUILD_CONFIGURATION="Debug"
+		BUILD_flag="0"
+		IDE="ECLIPSE"             # [empty,ECLIPSE]
+    elif [ "$3" == "Release" ]; then	
+		    BUILD_CONFIGURATION="Release"
+		    BUILD_flag="0"
+		    IDE=""
+	else
+        BUILD_CONFIGURATION=""	
+		BUILD_flag="-1" #[0: do not cmake, 1: do cmake]
+		IDE=""
+    fi	
+
 	
 	INTEL_VERSION=""
  
@@ -209,7 +231,7 @@ setCompilerTable()
 			"ON"					"$ICC"					"$ICPC"					# OGS_FEM_MKL   
 			"OFF"					"$MPIICC"				"$MPIICPC"				# OGS_FEM_MPI  
 			"OFF"					"$MPIICC"				"$MPIICPC"				# OGS_FEM_MPI_KRC 
-			"OFF"					"$MPIICC"			        "$MPIICPC"		        # OGS_FEM_PETSC 					 
+			"OFF"					"$MPIICC"			    "$MPIICPC"		        # OGS_FEM_PETSC 					 
 	)    
 }  
     
@@ -224,8 +246,7 @@ setCompilerTable()
 #			configurationSELECTED 	
 #			BUILD_CONFIGURATION    	
 #			BUILD_flag				
-#	parameter:
-#		$1: path to ogs folder
+#
 
 selectConfiguration()  # code configuration from list cConfigurations
 {      
@@ -242,12 +263,12 @@ selectConfiguration()  # code configuration from list cConfigurations
 
 		if [ "$configurationSELECTED" -lt 0 ] ||	[ "$configurationSELECTED" -ge ${#cConfigurations[@]} ]; then
 			printMessage "ERROR" "Number out of range - Restart"				
-			main $1
+			main
 		fi
 	else
 		if [ $configurationSELECTED != "a" ]; then
 		  printMessage "ERROR" "Input neither a number nor \"a\" to select all - Restart"				
-		  main $1
+		  main
 		fi
 	fi
 }  
@@ -269,7 +290,7 @@ selectBuild()
 			BUILD_CONFIGURATION="Release"		
 		else
 			printMessage "ERROR" "Take \"d\" or \"r\" - Restart"				
-			main $1
+			main
 		fi 
 	else
 		BUILD_CONFIGURATION="Release"     
@@ -280,12 +301,12 @@ selectBuild()
     	echo -e "\nCreate Build Files ([y]es or [n]o)?"  
     	read -n1 selectBuild__cInput  
     	if [ "$selectBuild__cInput" == "y" ]; then  
-	   BUILD_flag=1  
+	       BUILD_flag=1  
     	elif [ "$selectBuild__cInput" == "n" ]; then  
-	  BUILD_flag=0
+	       BUILD_flag=0
 	else
 		printMessage "ERROR" "Take \"y\" or \"n\" - Restart"		
-		main $1
+		main
     fi  
 }  
 
@@ -334,14 +355,17 @@ build()
 main()
 {
 	# config - variables and paths
-	declareVariables $1				
+	initialize $1 $2 $3				
 	setPaths
 	setCompilerTable
 	
 	# user input
-	selectConfiguration $1   
-	selectBuild $1
-
+	if [ "$2" == "" ]; then
+	    selectConfiguration    
+	fi
+	if [ "$3" == "" ]; then
+	    selectBuild 
+    fi
 	# config main loop
 	ROOT_FOLDER=$OGS_FOLDER/"Build_${BUILD_CONFIGURATION}_$INTEL_VERSION"
 	mkdir -p $ROOT_FOLDER
@@ -383,7 +407,12 @@ main()
 
 	cd $CALLEDFROM      # back to initial folder
 	
-	main $1  # restart
+	if [ "$2" == "" ]; then 
+	    main $1 "" "" # restart - than BUILD_CONFIGURATION, Build_flag and configuration always selected by user
+	fi   # else BUILD_CONFIGURATION was preselected - exit now
 } 
 
-main $1 # start
+main $1 $2 $3 # start
+
+	
+   
