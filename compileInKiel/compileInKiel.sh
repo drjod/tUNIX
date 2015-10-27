@@ -98,27 +98,28 @@ initialize()
 		"OGS_FEM_MPI_KRC" 
 		"OGS_FEM_PETSC" 
 	)
-	if [ "$2" != "" ]; then	
-	    configurationSELECTED=$2
-	else
-	    configurationSELECTED="-1"  
-	fi
-	cConfigurationSELECTED="" # [OGS_FEM, OGS_FEM_SP, ...]  
 	
+	configurationSELECTED="" # [OGS_FEM, OGS_FEM_SP, ...]  
+	for (( i=0; i<${#cConfigurations[@]}; i++ ))  
+        do  
+            if [ "${cConfigurations[i]}" == "$2" ]; then 
+                configurationSELECTED=$i   
+            fi		
+        done 	
 	
-    if [ "$3" == "Debug" ]; then
+        if [ "$3" == "Debug" ]; then
 	    BUILD_CONFIGURATION="Debug"
-		BUILD_flag="0"
-		IDE="ECLIPSE"             # [empty,ECLIPSE]
-    elif [ "$3" == "Release" ]; then	
-		    BUILD_CONFIGURATION="Release"
-		    BUILD_flag="0"
-		    IDE=""
+	    BUILD_flag="0"
+    	    IDE="ECLIPSE"             # [empty,ECLIPSE]
+        elif [ "$3" == "Release" ]; then	
+	    BUILD_CONFIGURATION="Release"
+	    BUILD_flag="0"
+            IDE=""
 	else
-        BUILD_CONFIGURATION=""	
-		BUILD_flag="-1" #[0: do not cmake, 1: do cmake]
-		IDE=""
-    fi	
+            BUILD_CONFIGURATION=""	
+	    BUILD_flag="-1" #[0: do not cmake, 1: do cmake]
+	    IDE=""
+        fi	
 
 	
 	INTEL_VERSION=""
@@ -171,7 +172,12 @@ setPaths()
     	
 			module load $INTEL_VERSION	
 			module load petsc-3.5.3-intel14 
-			module load eclipse		
+			module load eclipse
+			
+                        MKLROOT="$COMPOSER_ROOT/mkl"			 	 
+                        export PATH=$PATH:$MKLROOT/lib/intel64
+                        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MKLROOT/lib/intel64 
+                        . $MKLROOT/bin/intel64/mklvars_intel64.sh			
 				;;
 		ne) # NEC cluster 
 			SOFTWARE_FOLDER="/opt"	
@@ -187,6 +193,11 @@ setPaths()
 			INTEL_VERSION="intel15.0.3"
 			module load $INTEL_VERSION	
 			module load petsc-3.5.3-intel
+			
+			MKLROOT="$COMPOSER_ROOT/mkl"			 	 
+                        export PATH=$PATH:$MKLROOT/lib/intel64
+                        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MKLROOT/lib/intel64 
+                        . $MKLROOT/bin/intel64/mklvars_intel64.sh
 				;;
 		Lo)	# GPI server 
 			SOFTWARE_FOLDER="/opt"
@@ -250,7 +261,7 @@ setCompilerTable()
 
 selectConfiguration()  # code configuration from list cConfigurations
 {      
-    echo -e "Select"  
+    echo -e "Select (x for exit)"  
     for (( i=0; i<${#cConfigurations[@]}; i++ ))  
     do  
         echo -e "\t$i: ${cConfigurations[$i]}"  
@@ -258,18 +269,19 @@ selectConfiguration()  # code configuration from list cConfigurations
     echo -e "\ta: all"  
     read -n1 configurationSELECTED  
 	
-	# exception handling - restart if input error
-	if echo $configurationSELECTED | egrep -q '^[0-9]+$'; then 
-
-		if [ "$configurationSELECTED" -lt 0 ] ||	[ "$configurationSELECTED" -ge ${#cConfigurations[@]} ]; then
-			printMessage "ERROR" "Number out of range - Restart"				
-			main
-		fi
-	else
-		if [ $configurationSELECTED != "a" ]; then
-		  printMessage "ERROR" "Input neither a number nor \"a\" to select all - Restart"				
-		  main
-		fi
+	if [ $configurationSELECTED != "x" ]; then	
+	    # exception handling - restart if input error
+	    if echo $configurationSELECTED | egrep -q '^[0-9]+$'; then 
+		    if [ "$configurationSELECTED" -lt 0 ] || [ "$configurationSELECTED" -ge ${#cConfigurations[@]} ]; then
+			    printMessage "ERROR" "Number out of range - Restart"				
+			    main
+		    fi
+	    else
+		    if [ $configurationSELECTED != "a" ]; then
+		      printMessage "ERROR" "Input neither a number nor \"a\" to select all - Restart"				
+		      main
+		    fi
+	    fi
 	fi
 }  
 
@@ -327,14 +339,17 @@ build()
 	rm -rf $BUILD_FOLDER  # remove old build
 	mkdir $BUILD_FOLDER  
 	cd $BUILD_FOLDER   # step into build folder for cmake
-	build__COMPILER_C=${compilerTable[(($1 * 3 + 1))]}  # used as local variables
+	
+	# local variables
+	OPENMP=${compilerTable[(($1 * 3))]}          
+	build__COMPILER_C=${compilerTable[(($1 * 3 + 1))]} 
 	build__COMPILER_CXX=${compilerTable[(($1 * 3 + 2))]}
 
 	printMessage "INFO" "Building files - Debugger $build__COMPILER_C $build__COMPILER_CXX"
 	if [ "$IDE" == "ECLIPSE" ]; then  # only difference is GENERATOR_OPTION -G
 		cmake $OGS_FOLDER/sources -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D$cConfigurationSELECTED=ON -DPARALLEL_USE_OPENMP=${compilerTable[(($1 * 3))]} -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX               		
 	else
-		cmake $OGS_FOLDER/sources -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D$cConfigurationSELECTED=ON -DPARALLEL_USE_OPENMP=$COMPILER_C -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX               		
+		cmake $OGS_FOLDER/sources -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D$cConfigurationSELECTED=ON -DPARALLEL_USE_OPENMP=$OPENMP -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX               		
 	fi
 }
 
@@ -363,56 +378,58 @@ main()
 	if [ "$2" == "" ]; then
 	    selectConfiguration    
 	fi
-	if [ "$3" == "" ]; then
-	    selectBuild 
-    fi
-	# config main loop
-	ROOT_FOLDER=$OGS_FOLDER/"Build_${BUILD_CONFIGURATION}_$INTEL_VERSION"
-	mkdir -p $ROOT_FOLDER
-
-	# loop over all configurations (from list in 1.)
-	for (( main__configurationNDX=0; main__configurationNDX<${#cConfigurations[@]}; main__configurationNDX++ ))  
-	do  
-		# either one or all can be selected
-		if [ "$main__configurationNDX" == "$configurationSELECTED" ] || [ "$configurationSELECTED" == "a" ]; then  
-			# pre-processing
-			cConfigurationSELECTED=${cConfigurations[main__configurationNDX]}   
-			printMessage "INFO" "GENERATING $cConfigurationSELECTED $BUILD_CONFIGURATION $IDE" 
-			BUILD_FOLDER=$ROOT_FOLDER/$cConfigurationSELECTED
-			
-			# build
-			if [ "$BUILD_flag" -eq 1 ]; then  
-				build $main__configurationNDX
-			else
-				if [ ! -d "$BUILD_FOLDER" ]; then
-					printMessage "WARNING" "Build folder does not exist - Building it now"
-					build $main__configurationNDX
-				fi
-				cd $BUILD_FOLDER # step into build folder for make
-			fi  
-			
-			# compile
-        		 printMessage "INFO" "Compiling"
-			make -j $nCPUs    
-			
-			# post-processing
-        		 if [ -e $BUILD_FOLDER/bin/ogs ]; then			
-				mv $BUILD_FOLDER/bin/ogs $BUILD_FOLDER/bin/ogs_$cConfigurationSELECTED     # rename
-				printMessage "INFO" "Binaries ogs_$cConfigurationSELECTED generated"				
-			else
-				printMessage "WARNING" "No binaries generated"
-			fi
-		fi  
-	done   
-
-	cd $CALLEDFROM      # back to initial folder
 	
-	if [ "$2" == "" ]; then 
-	    main $1 "" "" # restart - than BUILD_CONFIGURATION, Build_flag and configuration always selected by user
-	fi   # else BUILD_CONFIGURATION was preselected - exit now
+	if [ "$configurationSELECTED" != "x" ]; then # else exit
+	    if [ "$3" == "" ]; then
+	        selectBuild 
+            fi
+	    # config main loop
+	    ROOT_FOLDER=$OGS_FOLDER/"Build_${BUILD_CONFIGURATION}_$INTEL_VERSION"
+	    mkdir -p $ROOT_FOLDER
+
+	    # loop over all configurations (from list in 1.)
+	    for (( main__configurationNDX=0; main__configurationNDX<${#cConfigurations[@]}; main__configurationNDX++ ))  
+	    do  
+		    # either one or all can be selected
+		    if [ "$main__configurationNDX" == "$configurationSELECTED" ] || [ "$configurationSELECTED" == "a" ]; then  
+			    # pre-processing
+			    cConfigurationSELECTED=${cConfigurations[main__configurationNDX]}   
+			    printMessage "INFO" "GENERATING $cConfigurationSELECTED $BUILD_CONFIGURATION $IDE" 
+			    BUILD_FOLDER=$ROOT_FOLDER/$cConfigurationSELECTED
+			
+			    # build
+			    if [ "$BUILD_flag" -eq 1 ]; then  
+				    build $main__configurationNDX
+			    else
+				    if [ ! -d "$BUILD_FOLDER" ]; then
+					    printMessage "WARNING" "Build folder does not exist - Building it now"
+					    build $main__configurationNDX
+				    fi
+				    cd $BUILD_FOLDER # step into build folder for make
+			    fi  
+			
+			    # compile
+        	 	    printMessage "INFO" "Compiling"
+			    make -j $nCPUs    
+			
+			    # post-processing
+        	            if [ -e $BUILD_FOLDER/bin/ogs ]; then			
+				    mv $BUILD_FOLDER/bin/ogs $BUILD_FOLDER/bin/ogs_$cConfigurationSELECTED     # rename
+				    printMessage "INFO" "Binaries ogs_$cConfigurationSELECTED generated"				
+			    else
+				    printMessage "WARNING" "No binaries generated"
+			    fi
+		    fi  
+	    done   
+
+	    cd $CALLEDFROM      # back to initial folder
+	
+	    if [ "$2" == "" ]; then 
+	        main $1 "" "" # restart - than BUILD_CONFIGURATION, Build_flag and configuration always selected by user
+	    fi   # else BUILD_CONFIGURATION was preselected - exit now
+	fi
 } 
 
 main $1 $2 $3 # start
 
-	
    
