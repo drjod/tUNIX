@@ -173,7 +173,7 @@ setPaths()
             module load $INTEL_VERSION    
             #module load petsc-3.5.3-intel14
             export PETSC_DIR=/cluster/Software/Dpetsc/petsc-3.5.3			
-			export PETSC_ARCH=linux-intel-opt
+   	    export PETSC_ARCH=linux-intel1502-opt
 			
             module load eclipse
             
