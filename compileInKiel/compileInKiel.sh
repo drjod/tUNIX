@@ -14,7 +14,8 @@
 #                   2: OGS_FEM_MKL (sequential)
 #                   3: OGS_FEM_MPI
 #                   4: OGS_FEM_MPI_KRC
-#                   5: OGS_FEN_PETSC (parallel)
+#                   5: OGS_FEM_MPI__OGS_FEM_MPI_KRC
+#                   6: OGS_FEN_PETSC (parallel)
 #                            (more can be added in 1./3. below)
 #       $3: BUILD_CONFIGURATION   [Debug, Release]   No Debug for NEC 
 #                                 if BUILD_CONFIGURATION preselected, then BUILD_flag=0  (no cmake)
@@ -96,6 +97,7 @@ initialize()
         "OGS_FEM_MKL"   
         "OGS_FEM_MPI"  
         "OGS_FEM_MPI_KRC" 
+        "OGS_FEM_MPI__OGS_FEM_MPI_KRC" 
         "OGS_FEM_PETSC" 
     )
     
@@ -245,6 +247,7 @@ setCompilerTable()
             "ON"                    "$ICC"                    "$ICPC"                    # OGS_FEM_MKL   
             "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_MPI  
             "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_MPI_KRC 
+            "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_MPI__OGS_FEM_MPI_KRC             
             "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_PETSC                      
     )    
 }  
@@ -350,9 +353,9 @@ build()
 
     printMessage "INFO" "Building files - Debugger $build__COMPILER_C $build__COMPILER_CXX"
     if [ "$IDE" == "ECLIPSE" ]; then  # only difference is GENERATOR_OPTION -G
-        cmake $OGS_FOLDER/sources -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D$cConfigurationSELECTED=ON -DPARALLEL_USE_OPENMP=${compilerTable[(($1 * 3))]} -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
+        cmake $OGS_FOLDER/sources -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D${cConfigurationSELECTED/__/=ON -D}=ON -DPARALLEL_USE_OPENMP=${compilerTable[(($1 * 3))]} -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
     else
-        cmake $OGS_FOLDER/sources -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D$cConfigurationSELECTED=ON -DPARALLEL_USE_OPENMP=$OPENMP -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
+        cmake $OGS_FOLDER/sources -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D${cConfigurationSELECTED/__/=ON -D}=ON -DPARALLEL_USE_OPENMP=$OPENMP -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
     fi
 }
 
