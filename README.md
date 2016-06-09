@@ -7,6 +7,8 @@ compileInKiel: to compile OpenGeoSys on RZ cluster, NEC cluster and Lokstedt ser
 
 qb: to generate huge finite element meshes in no time (regular 2D, 3D). <br>
 
+synchronize: to keep source code up to date on remote cluster <br>
+
 
 ogs_kb1 simulation of a brine leakage szenario with a qb grid (4 million nodes; meshing requires 1 min):
 ![grid](https://cloud.githubusercontent.com/assets/12182426/9609894/8de1753a-50d6-11e5-8cc8-cf1bca533915.jpg)
