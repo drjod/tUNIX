@@ -14,8 +14,7 @@
 #                   2: OGS_FEM_MKL (sequential)
 #                   3: OGS_FEM_MPI
 #                   4: OGS_FEM_MPI_KRC
-#                   5: OGS_FEM_MPI__OGS_FEM_MPI_KRC
-#                   6: OGS_FEN_PETSC (parallel)
+#                   5: OGS_FEN_PETSC (parallel)
 #                            (more can be added in 1./3. below)
 #       $3: BUILD_CONFIGURATION   [Debug, Release]   No Debug for NEC 
 #                                 if BUILD_CONFIGURATION preselected, then BUILD_flag=0  (no cmake)
@@ -91,13 +90,14 @@ initialize()
         OGS_FOLDER=$CALLEDFROM # call from ogs folder
     fi
     
+    printMessage "INFO" "Up to compile ${OGS_FOLDER##*/}"
+    
     cConfigurations=(  # extend compiler table (3.) if you add code configurations
         "OGS_FEM"  
         "OGS_FEM_SP"  
         "OGS_FEM_MKL"   
         "OGS_FEM_MPI"  
         "OGS_FEM_MPI_KRC" 
-        "OGS_FEM_MPI__OGS_FEM_MPI_KRC" 
         "OGS_FEM_PETSC" 
     )
     
@@ -133,10 +133,10 @@ initialize()
     BUILD_FOLDER=""   # where folder for specific BUILD_CONFIGURATION will be placed 
                          #($ROOT_FOLDER/$cConfigurationSELECTED)
     SOFTWARE_FOLDER=""   # where intel folder are
-    COMPOSER_ROOT=""
+    COMPOSER_ROOT=""   # not used with intel16 compiler on rz cluster
     MPI_ROOT=""
     ICC=""           # intel c compiler
-    ICPC=""            # intel c++ compiler
+    ICPC=""            # intel c++ compilerx
     MPIICC=""        # mpi c compiler
     MPIICPC=""        # mpi c++ compiler
 }
@@ -162,26 +162,39 @@ setPaths()
     case ${setPaths__host:0:2} in 
         rz)      # rzcluster 
             SOFTWARE_FOLDER="/cluster/Software"
-            INTEL_VERSION="intel1502"
-            COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/composer_xe_2015.2.164"
-            MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/impi/5.0.3.048"
-    
+            
+            # INTEL_VERSION="intel1402"   
+            # COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/composer_xe_2013_sp1.2.144"     
+            # MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/impi/4.1.3.048"  
+ 
+            #INTEL_VERSION="intel1502"      
+            #COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/composer_xe_2015.2.164"          
+            #MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/impi/5.0.3.048" 
+            #module load $INTEL_VERSION   
+            
+            INTEL_VERSION="intel16"      
+            COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/compilers_and_libraries_2016.0.109/linux"          
+            MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/compilers_and_libraries_2016.0.109/linux/mpi" 
+            module load intel16.0.0
+            
             ICC="$COMPOSER_ROOT/bin/intel64/icc"
             ICPC="$COMPOSER_ROOT/bin/intel64/icpc"
-     
+
             MPIICC="$MPI_ROOT/intel64/bin/mpiicc"  
             MPIICPC="$MPI_ROOT/intel64/bin/mpiicpc"
-        
-            module load $INTEL_VERSION    
+                
             #module load petsc-3.5.3-intel14
-            export PETSC_DIR=/cluster/Software/Dpetsc/petsc-3.5.3			
-   	    export PETSC_ARCH=linux-intel1502-opt
-			
+            export PETSC_DIR=/cluster/Software/Dpetsc/petsc-3.5.3    
+            export PETSC_ARCH=linux-intel1502-opt            
+            #export PETSC_ARCH=linux-intel-opt
+            
             module load eclipse
             
-            MKLROOT="$COMPOSER_ROOT/mkl"                  
+            MKLROOT="$COMPOSER_ROOT/mkl"   
+
             export PATH=$PATH:$MKLROOT/lib/intel64
             export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MKLROOT/lib/intel64 
+            export MKL_INCLUDE=/cluster/Software/intel16/compilers_and_libraries_2016.0.109/linux/mkl/include
             . $MKLROOT/bin/intel64/mklvars_intel64.sh            
                 ;;
         ne) # NEC cluster 
@@ -247,7 +260,6 @@ setCompilerTable()
             "ON"                    "$ICC"                    "$ICPC"                    # OGS_FEM_MKL   
             "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_MPI  
             "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_MPI_KRC 
-            "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_MPI__OGS_FEM_MPI_KRC             
             "OFF"                    "$MPIICC"                "$MPIICPC"                # OGS_FEM_PETSC                      
     )    
 }  
@@ -353,9 +365,9 @@ build()
 
     printMessage "INFO" "Building files - Debugger $build__COMPILER_C $build__COMPILER_CXX"
     if [ "$IDE" == "ECLIPSE" ]; then  # only difference is GENERATOR_OPTION -G
-        cmake $OGS_FOLDER/sources -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D${cConfigurationSELECTED/__/=ON -D}=ON -DPARALLEL_USE_OPENMP=${compilerTable[(($1 * 3))]} -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
+        cmake $OGS_FOLDER/sources -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D$cConfigurationSELECTED=ON -DPARALLEL_USE_OPENMP=${compilerTable[(($1 * 3))]} -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
     else
-        cmake $OGS_FOLDER/sources -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D${cConfigurationSELECTED/__/=ON -D}=ON -DPARALLEL_USE_OPENMP=$OPENMP -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
+        cmake $OGS_FOLDER/sources -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -D$cConfigurationSELECTED=ON -DPARALLEL_USE_OPENMP=$OPENMP -DCMAKE_C_COMPILER=$build__COMPILER_C  -DCMAKE_CXX_COMPILER=$build__COMPILER_CXX                       
     fi
 }
 
