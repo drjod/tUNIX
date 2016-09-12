@@ -167,15 +167,15 @@ setPaths()
             # COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/composer_xe_2013_sp1.2.144"     
             # MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/impi/4.1.3.048"  
  
-            #INTEL_VERSION="intel1502"      
-            #COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/composer_xe_2015.2.164"          
-            #MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/impi/5.0.3.048" 
-            #module load $INTEL_VERSION   
+            INTEL_VERSION="intel1502"      
+            COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/composer_xe_2015.2.164"          
+            MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/impi/5.0.3.048" 
+            module load $INTEL_VERSION   
             
-            INTEL_VERSION="intel16"      
-            COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/compilers_and_libraries_2016.0.109/linux"          
-            MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/compilers_and_libraries_2016.0.109/linux/mpi" 
-            module load intel16.0.0
+            # INTEL_VERSION="intel16"      
+            # COMPOSER_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/compilers_and_libraries_2016.0.109/linux"          
+            # MPI_ROOT="$SOFTWARE_FOLDER/$INTEL_VERSION/compilers_and_libraries_2016.0.109/linux/mpi" 
+            # module load intel16.0.0
             
             ICC="$COMPOSER_ROOT/bin/intel64/icc"
             ICPC="$COMPOSER_ROOT/bin/intel64/icpc"
